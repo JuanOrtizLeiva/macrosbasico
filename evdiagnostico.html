@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluación Diagnóstica - Macros Básicas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --background: #0f172a;
+            --surface: #1e293b;
+            --surface-light: #334155;
+            --text: #f1f5f9;
+            --text-dim: #94a3b8;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .bg-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(37, 99, 235, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: var(--text-dim);
+            font-size: 1.1rem;
+        }
+
+        .progress-container {
+            background: var(--surface);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 0.8s ease-out 0.2s both;
+        }
+
+        .progress-bar {
+            background: var(--surface-light);
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .question-card {
+            background: var(--surface);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transform: translateY(20px);
+            opacity: 0;
+            animation: slideUp 0.6s ease-out forwards;
+            display: none;
+        }
+
+        .question-card.active {
+            display: block;
+        }
+
+        .question-number {
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .question-text {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .option {
+            background: var(--surface-light);
+            border: 2px solid transparent;
+            border-radius: 0.75rem;
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option:hover {
+            background: rgba(37, 99, 235, 0.1);
+            border-color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .option.selected {
+            border-color: var(--primary);
+            background: rgba(37, 99, 235, 0.2);
+        }
+
+        .option.correct {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.2);
+        }
+
+        .option.incorrect {
+            border-color: var(--error);
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        .option.disabled {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .feedback {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .feedback.show {
+            display: block;
+        }
+
+        .feedback.correct {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid var(--success);
+        }
+
+        .feedback.incorrect {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid var(--error);
+        }
+
+        .feedback-icon {
+            font-size: 1.5rem;
+            margin-right: 0.5rem;
+            vertical-align: middle;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+            margin-top: 1.5rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .results {
+            background: var(--surface);
+            border-radius: 1rem;
+            padding: 3rem;
+            text-align: center;
+            display: none;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .score {
+            font-size: 4rem;
+            font-weight: 700;
+            margin: 1rem 0;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .score-message {
+            font-size: 1.2rem;
+            color: var(--text-dim);
+            margin-bottom: 2rem;
+        }
+
+        .recommendation {
+            background: var(--surface-light);
+            padding: 2rem;
+            border-radius: 0.75rem;
+            margin-top: 2rem;
+            text-align: left;
+        }
+
+        .recommendation h3 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .question-text {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-pattern"></div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>Evaluación Diagnóstica</h1>
+            <p class="subtitle">Macros Básicas en Excel VBA</p>
+        </div>
+
+        <div class="progress-container">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Progreso</span>
+                <span id="progress-text">0 de 12 preguntas</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+        </div>
+
+        <div id="quiz-container">
+            <!-- Las preguntas se generarán dinámicamente -->
+        </div>
+
+        <div class="results" id="results">
+            <h2>¡Evaluación Completada!</h2>
+            <div class="score" id="score">0%</div>
+            <p class="score-message" id="score-message"></p>
+            <div class="recommendation" id="recommendation"></div>
+            <button class="btn" onclick="restart()">Volver a Intentar</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: "¿Qué es una macro en Excel?",
+                options: [
+                    "Una fórmula matemática compleja",
+                    "Un conjunto de instrucciones que automatizan tareas repetitivas",
+                    "Un tipo de gráfico avanzado",
+                    "Una función para calcular promedios"
+                ],
+                correct: 1,
+                feedback: {
+                    correct: "¡Exacto! Una macro es un conjunto de instrucciones programadas que automatizan tareas repetitivas en Excel, ahorrando tiempo y reduciendo errores.",
+                    incorrect: "Una macro es un conjunto de instrucciones que automatizan tareas repetitivas. Piensa en ellas como 'robots' que realizan acciones por ti en Excel."
+                }
+            },
+            {
+                question: "¿En qué lenguaje de programación se escriben las macros de Excel?",
+                options: [
+                    "Python",
+                    "JavaScript",
+                    "VBA (Visual Basic for Applications)",
+                    "C++"
+                ],
+                correct: 2,
+                feedback: {
+                    correct: "¡Correcto! VBA (Visual Basic for Applications) es el lenguaje de programación integrado en Excel para crear macros.",
+                    incorrect: "Las macros de Excel se escriben en VBA (Visual Basic for Applications), un lenguaje diseñado específicamente para programar en aplicaciones de Microsoft Office."
+                }
+            },
+            {
+                question: "¿Dónde se encuentra la opción para grabar una macro en Excel?",
+                options: [
+                    "Pestaña Inicio",
+                    "Pestaña Desarrollador o Vista",
+                    "Pestaña Insertar",
+                    "Pestaña Datos"
+                ],
+                correct: 1,
+                feedback: {
+                    correct: "¡Muy bien! La grabadora de macros se encuentra en la pestaña Desarrollador (si está habilitada) o en la pestaña Vista.",
+                    incorrect: "La grabadora de macros está en la pestaña Desarrollador o en la pestaña Vista. Si no ves la pestaña Desarrollador, puedes habilitarla desde las opciones de Excel."
+                }
+            },
+            {
+                question: "¿Qué tipo de referencia es recomendable usar al grabar macros para mayor flexibilidad?",
+                options: [
+                    "Referencias absolutas",
+                    "Referencias relativas",
+                    "Referencias mixtas",
+                    "No importa el tipo de referencia"
+                ],
+                correct: 1,
+                feedback: {
+                    correct: "¡Excelente! Las referencias relativas permiten que la macro funcione desde cualquier celda seleccionada, haciéndola más flexible y reutilizable.",
+                    incorrect: "Las referencias relativas son más flexibles porque permiten que la macro funcione desde cualquier posición, no solo desde las celdas específicas donde se grabó."
+                }
+            },
+            {
+                question: "¿Cuál es la extensión de archivo para un libro de Excel que contiene macros?",
+                options: [
+                    ".xlsx",
+                    ".xlsm",
+                    ".xls",
+                    ".xlam"
+                ],
+                correct: 1,
+                feedback: {
+                    correct: "¡Perfecto! Los archivos .xlsm son libros de Excel habilitados para macros. La 'm' al final significa 'macro-enabled'.",
+                    incorrect: "Los archivos con macros deben guardarse con extensión .xlsm (Excel Macro-Enabled Workbook). Los archivos .xlsx no pueden contener macros."
+                }
+            },
+            {
+                question: "¿Qué es el Editor de Visual Basic (VBE)?",
+                options: [
+                    "Un programa externo para editar Excel",
+                    "El entorno donde se escriben y editan las macros",
+                    "Una herramienta para crear gráficos",
+                    "Un complemento de Excel"
+                ],
+                correct: 1,
+                feedback: {
+                    correct: "¡Correcto! El VBE (Visual Basic Editor) es el entorno integrado donde puedes escribir, editar y depurar el código VBA de tus macros.",
+                    incorrect: "El VBE es el entorno de desarrollo integrado en Excel donde se escribe y edita el código VBA. Se accede con Alt+F11."
+                }
+            },
+            {
+                question: "¿Cuál es la estructura básica de una macro en VBA?",
+                options: [
+                    "Function...End Function",
+                    "Sub...End Sub",
+                    "Macro...End Macro",
+                    "Begin...End"
+                ],
+                correct: 1,
+                feedback: {
+                    correct: "¡Muy bien! Las macros en VBA se definen entre Sub (abreviatura de Subrutina) y End Sub.",
+                    incorrect: "Las macros se estructuran con Sub NombreMacro() al inicio y End Sub al final. 'Sub' es la abreviatura de Subrutina."
+                }
+            },
+            {
+                question: "¿Qué hace la instrucción 'Range(\"A1\").Value = \"Hola\"' en VBA?",
+                options: [
+                    "Lee el valor de la celda A1",
+                    "Borra el contenido de la celda A1",
+                    "Escribe 'Hola' en la celda A1",
+                    "Selecciona la celda A1"
+                ],
+                correct: 2,
+                feedback: {
+                    correct: "¡Exacto! Esta instrucción asigna el texto 'Hola' a la propiedad Value de la celda A1, escribiendo ese texto en la celda.",
+                    incorrect: "Esta instrucción escribe 'Hola' en la celda A1. En VBA, el signo = asigna valores, y .Value es la propiedad que contiene el contenido de una celda."
+                }
+            },
+            {
+                question: "¿Para qué sirve la instrucción 'Option Explicit' en VBA?",
+                options: [
+                    "Para hacer el código más rápido",
+                    "Para obligar a declarar todas las variables antes de usarlas",
+                    "Para ocultar el código",
+                    "Para ejecutar macros automáticamente"
+                ],
+                correct: 1,
+                feedback: {
+                    correct: "¡Excelente! Option Explicit obliga a declarar todas las variables, lo que ayuda a evitar errores por nombres mal escritos y hace el código más robusto.",
+                    incorrect: "Option Explicit requiere que declares todas las variables antes de usarlas. Esto previene errores tipográficos y hace tu código más confiable."
+                }
+            },
+            {
+                question: "¿Cuál de estos es un tipo de variable válido en VBA?",
+                options: [
+                    "Integer, String, Boolean",
+                    "int, str, bool",
+                    "number, text, logical",
+                    "NUM, TXT, LOG"
+                ],
+                correct: 0,
+                feedback: {
+                    correct: "¡Correcto! Integer (números enteros), String (texto) y Boolean (verdadero/falso) son tipos de datos fundamentales en VBA.",
+                    incorrect: "En VBA los tipos básicos incluyen Integer (enteros), String (texto), Boolean (verdadero/falso), Double (decimales), entre otros."
+                }
+            },
+            {
+                question: "¿Qué nivel de seguridad de macros es más recomendable para un uso balanceado?",
+                options: [
+                    "Deshabilitar todas las macros",
+                    "Habilitar todas las macros",
+                    "Deshabilitar macros con notificación",
+                    "No usar macros nunca"
+                ],
+                correct: 2,
+                feedback: {
+                    correct: "¡Muy bien! 'Deshabilitar macros con notificación' te permite decidir caso por caso si confías en las macros de un archivo.",
+                    incorrect: "La opción 'Deshabilitar macros con notificación' es la más balanceada: te protege pero te permite habilitar macros cuando confías en la fuente."
+                }
+            },
+            {
+                question: "¿Qué evento se ejecuta automáticamente al abrir un libro de Excel?",
+                options: [
+                    "Worksheet_Open",
+                    "Workbook_Open",
+                    "Auto_Open",
+                    "Document_Open"
+                ],
+                correct: 1,
+                feedback: {
+                    correct: "¡Perfecto! El evento Workbook_Open se ejecuta automáticamente cuando se abre el libro, permitiendo inicializar configuraciones o mostrar mensajes.",
+                    incorrect: "El evento Workbook_Open se ejecuta al abrir un libro. También existe Auto_Open como método alternativo, pero Workbook_Open es el método moderno preferido."
+                }
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let answers = [];
+
+        function init() {
+            renderQuestion();
+            updateProgress();
+        }
+
+        function renderQuestion() {
+            const container = document.getElementById('quiz-container');
+            const q = questions[currentQuestion];
+            
+            container.innerHTML = `
+                <div class="question-card active">
+                    <div class="question-number">Pregunta ${currentQuestion + 1} de ${questions.length}</div>
+                    <h2 class="question-text">${q.question}</h2>
+                    <div class="options">
+                        ${q.options.map((option, index) => `
+                            <div class="option" onclick="selectOption(${index})">
+                                ${option}
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="feedback" id="feedback"></div>
+                    <button class="btn" id="next-btn" style="display: none;" onclick="nextQuestion()">
+                        ${currentQuestion === questions.length - 1 ? 'Ver Resultados' : 'Siguiente Pregunta'}
+                    </button>
+                </div>
+            `;
+        }
+
+        function selectOption(index) {
+            const options = document.querySelectorAll('.option');
+            const feedback = document.getElementById('feedback');
+            const nextBtn = document.getElementById('next-btn');
+            const q = questions[currentQuestion];
+            
+            // Deshabilitar todas las opciones
+            options.forEach(opt => opt.classList.add('disabled'));
+            
+            // Marcar la opción seleccionada
+            options[index].classList.add('selected');
+            
+            // Verificar respuesta
+            const isCorrect = index === q.correct;
+            answers.push(isCorrect);
+            
+            if (isCorrect) {
+                options[index].classList.add('correct');
+                feedback.classList.add('correct', 'show');
+                feedback.innerHTML = `
+                    <span class="feedback-icon">✓</span>
+                    ${q.feedback.correct}
+                `;
+                score++;
+            } else {
+                options[index].classList.add('incorrect');
+                options[q.correct].classList.add('correct');
+                feedback.classList.add('incorrect', 'show');
+                feedback.innerHTML = `
+                    <span class="feedback-icon">✗</span>
+                    ${q.feedback.incorrect}
+                `;
+            }
+            
+            nextBtn.style.display = 'inline-block';
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            updateProgress();
+            
+            if (currentQuestion < questions.length) {
+                renderQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function updateProgress() {
+            const progressFill = document.getElementById('progress-fill');
+            const progressText = document.getElementById('progress-text');
+            
+            const progress = (currentQuestion / questions.length) * 100;
+            progressFill.style.width = progress + '%';
+            progressText.textContent = `${currentQuestion} de ${questions.length} preguntas`;
+        }
+
+        function showResults() {
+            const quizContainer = document.getElementById('quiz-container');
+            const resultsContainer = document.getElementById('results');
+            const scoreElement = document.getElementById('score');
+            const messageElement = document.getElementById('score-message');
+            const recommendationElement = document.getElementById('recommendation');
+            
+            quizContainer.style.display = 'none';
+            resultsContainer.classList.add('show');
+            
+            const percentage = Math.round((score / questions.length) * 100);
+            scoreElement.textContent = percentage + '%';
+            
+            let message, recommendation;
+            
+            if (percentage >= 80) {
+                message = "¡Excelente! Tienes una base sólida en macros.";
+                recommendation = `
+                    <h3>Recomendación</h3>
+                    <p>Tu conocimiento de macros es muy bueno. El curso te ayudará a:</p>
+                    <ul style="margin-top: 1rem; padding-left: 1.5rem;">
+                        <li>Perfeccionar técnicas avanzadas</li>
+                        <li>Optimizar tu código VBA</li>
+                        <li>Aprender mejores prácticas</li>
+                        <li>Explorar funcionalidades avanzadas</li>
+                    </ul>
+                `;
+            } else if (percentage >= 60) {
+                message = "¡Bien! Tienes conocimientos básicos que podemos fortalecer.";
+                recommendation = `
+                    <h3>Recomendación</h3>
+                    <p>Tienes una buena base. El curso te permitirá:</p>
+                    <ul style="margin-top: 1rem; padding-left: 1.5rem;">
+                        <li>Consolidar conceptos fundamentales</li>
+                        <li>Practicar con ejercicios guiados</li>
+                        <li>Desarrollar macros más complejas</li>
+                        <li>Mejorar la eficiencia de tu código</li>
+                    </ul>
+                `;
+            } else if (percentage >= 40) {
+                message = "Tienes nociones básicas. ¡Es un buen punto de partida!";
+                recommendation = `
+                    <h3>Recomendación</h3>
+                    <p>El curso está diseñado perfectamente para tu nivel. Aprenderás:</p>
+                    <ul style="margin-top: 1rem; padding-left: 1.5rem;">
+                        <li>Fundamentos sólidos de VBA</li>
+                        <li>Cómo grabar y editar macros</li>
+                        <li>Programación paso a paso</li>
+                        <li>Casos prácticos del mundo real</li>
+                    </ul>
+                `;
+            } else {
+                message = "¡No te preocupes! Todos empezamos desde cero.";
+                recommendation = `
+                    <h3>Recomendación</h3>
+                    <p>Este curso es ideal para principiantes. Te enseñaremos:</p>
+                    <ul style="margin-top: 1rem; padding-left: 1.5rem;">
+                        <li>Qué son las macros y para qué sirven</li>
+                        <li>Cómo crear tu primera macro</li>
+                        <li>Conceptos básicos de programación</li>
+                        <li>Ejercicios prácticos desde cero</li>
+                    </ul>
+                    <p style="margin-top: 1rem;">¡El curso está diseñado especialmente para personas sin experiencia previa!</p>
+                `;
+            }
+            
+            messageElement.textContent = message;
+            recommendationElement.innerHTML = recommendation;
+            
+            // Actualizar progreso final
+            const progressFill = document.getElementById('progress-fill');
+            const progressText = document.getElementById('progress-text');
+            progressFill.style.width = '100%';
+            progressText.textContent = `${questions.length} de ${questions.length} preguntas`;
+        }
+
+        function restart() {
+            currentQuestion = 0;
+            score = 0;
+            answers = [];
+            
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('quiz-container').style.display = 'block';
+            
+            init();
+        }
+
+        // Inicializar al cargar la página
+        init();
+    </script>
+</body>
+</html>
