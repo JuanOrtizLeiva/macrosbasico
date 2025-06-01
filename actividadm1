@@ -1,0 +1,1667 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Actividad Práctica: Macros en Excel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .screen {
+            display: none;
+            padding: 40px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Pantalla inicial */
+        .home-screen {
+            text-align: center;
+            background: linear-gradient(135deg, #0063B2 0%, #27ae60 50%, #8e44ad 100%);
+            color: white;
+            padding: 60px 40px;
+        }
+
+        .home-screen h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .home-screen p {
+            font-size: 1.2em;
+            margin-bottom: 40px;
+            opacity: 0.95;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 20px 40px;
+            font-size: 1.2em;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: white;
+            color: #0063B2;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-secondary {
+            background: #27ae60;
+            color: white;
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.4);
+        }
+
+        .btn-secondary:hover {
+            background: #229954;
+            transform: translateY(-2px);
+        }
+
+        .btn-back {
+            background: #e74c3c;
+            color: white;
+            padding: 10px 20px;
+            font-size: 1em;
+            margin-bottom: 20px;
+        }
+
+        .btn-back:hover {
+            background: #c0392b;
+        }
+
+        /* Quiz Styles */
+        .quiz-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .quiz-header h2 {
+            color: #0063B2;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #ecf0f1;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, #0063B2, #27ae60);
+            transition: width 0.5s ease;
+            border-radius: 5px;
+        }
+
+        .question-card {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .question-card h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .option {
+            padding: 15px 20px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .option:hover {
+            border-color: #0063B2;
+            transform: translateX(5px);
+        }
+
+        .option.selected {
+            border-color: #0063B2;
+            background: #e3f2fd;
+        }
+
+        .option.correct {
+            border-color: #27ae60;
+            background: #d4efdf;
+        }
+
+        .option.incorrect {
+            border-color: #e74c3c;
+            background: #fadbd8;
+        }
+
+        .feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .feedback.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .feedback.correct {
+            background: #d4efdf;
+            color: #27ae60;
+            border: 1px solid #27ae60;
+        }
+
+        .feedback.incorrect {
+            background: #fadbd8;
+            color: #e74c3c;
+            border: 1px solid #e74c3c;
+        }
+
+        .quiz-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        .score-display {
+            text-align: center;
+            font-size: 1.2em;
+            color: #0063B2;
+            margin-bottom: 20px;
+        }
+
+        /* Drag and Drop Styles */
+        .drag-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .draggable {
+            padding: 15px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: move;
+            transition: all 0.3s ease;
+        }
+
+        .draggable.dragging {
+            opacity: 0.5;
+        }
+
+        .drop-zone {
+            min-height: 50px;
+            border: 2px dashed #bdc3c7;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 5px 0;
+            transition: all 0.3s ease;
+        }
+
+        .drop-zone.drag-over {
+            border-color: #0063B2;
+            background: #e3f2fd;
+        }
+
+        /* Simulator Styles */
+        .simulator-container {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .simulator-layout {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .simulator-info {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .info-section {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .info-section:last-child {
+            border-bottom: none;
+        }
+
+        .info-section h4 {
+            color: #0063B2;
+            margin-bottom: 10px;
+        }
+
+        .info-section p {
+            color: #666;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+
+        .action-list {
+            list-style: none;
+            font-size: 0.9em;
+        }
+
+        .action-list li {
+            padding: 5px 0;
+            color: #666;
+        }
+
+        .action-list li.completed {
+            color: #27ae60;
+            text-decoration: line-through;
+        }
+
+        .excel-interface {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .excel-toolbar {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-section {
+            display: flex;
+            gap: 5px;
+            padding: 0 10px;
+            border-right: 1px solid #ccc;
+        }
+
+        .toolbar-section:last-child {
+            border-right: none;
+        }
+
+        .toolbar-btn {
+            padding: 8px 15px;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9em;
+        }
+
+        .toolbar-btn:hover:not(:disabled) {
+            background: #e0e0e0;
+        }
+
+        .toolbar-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .toolbar-btn.active {
+            background: #0063B2;
+            color: white;
+            border-color: #0063B2;
+        }
+
+        .excel-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+            margin-top: 20px;
+        }
+
+        .cell {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+            background: white;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .cell:hover {
+            background: #f5f5f5;
+        }
+
+        .cell.selected {
+            background: #e3f2fd;
+            border-color: #0063B2;
+            box-shadow: 0 0 0 2px #0063B2;
+        }
+
+        .cell.formatted {
+            font-weight: bold;
+            border: 2px solid #333;
+        }
+
+        .cell.colored {
+            background-color: #fff3cd;
+        }
+
+        .step-indicator {
+            background: #0063B2;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 25px;
+            margin: 20px 0;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .step-description {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            color: #0063B2;
+            font-size: 0.95em;
+        }
+
+        .code-display {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin-top: 20px;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .code-display pre {
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        .dialog-box {
+            background: white;
+            border: 2px solid #0063B2;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .dialog-box h4 {
+            color: #0063B2;
+            margin-bottom: 15px;
+        }
+
+        .dialog-box input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .dialog-box select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .success-message {
+            background: #d4efdf;
+            color: #27ae60;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.2em;
+            animation: bounceIn 0.5s ease;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Transition Screens */
+        .transition-screen {
+            background: linear-gradient(135deg, #0063B2 0%, #27ae60 100%);
+            color: white;
+            padding: 60px;
+            border-radius: 20px;
+            text-align: center;
+            margin: 20px 0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .transition-screen h2 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .transition-screen .icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .transition-screen p {
+            font-size: 1.3em;
+            line-height: 1.6;
+            max-width: 600px;
+            margin: 0 auto 30px;
+            opacity: 0.95;
+        }
+
+        .transition-screen .btn-continue {
+            background: white;
+            color: #0063B2;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .transition-screen .btn-continue:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Results Screen */
+        .results-container {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .results-container h2 {
+            color: #0063B2;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+        }
+
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0063B2, #27ae60);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            box-shadow: 0 10px 30px rgba(0, 99, 178, 0.3);
+        }
+
+        .score-circle span {
+            color: white;
+            font-size: 3em;
+            font-weight: bold;
+        }
+
+        .results-details {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 30px;
+            text-align: left;
+        }
+
+        .result-item {
+            padding: 15px 0;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .result-item span:first-child {
+            flex: 1;
+            text-align: left;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-icon {
+            font-size: 1.5em;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .home-screen h1 {
+                font-size: 2em;
+            }
+            
+            .button-group {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+            
+            .excel-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .simulator-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .simulator-info {
+                order: -1;
+                margin-bottom: 20px;
+            }
+            
+            .toolbar-section {
+                border-right: none;
+                padding: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Pantalla Inicial -->
+        <div class="screen home-screen active" id="homeScreen">
+            <h1>📊 Actividad Práctica: Macros en Excel</h1>
+            <p>¡Bienvenido! Esta actividad te ayudará a reforzar tus conocimientos sobre Macros en Excel a través de ejercicios interactivos.</p>
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="showQuiz()">
+                    📝 Quiz Interactivo
+                </button>
+                <button class="btn btn-primary" onclick="showSimulator()">
+                    🎯 Simulador de Grabación
+                </button>
+            </div>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div class="screen" id="quizScreen">
+            <button class="btn btn-back" onclick="goHome()">← Volver al inicio</button>
+            <div class="quiz-header">
+                <h2>Quiz: Macros en Excel</h2>
+                <div class="score-display" id="scoreDisplay">Puntuación: 0/0</div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress" id="progressBar" style="width: 0%"></div>
+            </div>
+            <div id="questionContainer"></div>
+            <div class="quiz-navigation">
+                <button class="btn btn-secondary" onclick="previousQuestion()" id="prevBtn" style="display: none;">← Anterior</button>
+                <button class="btn btn-secondary" onclick="nextQuestion()" id="nextBtn">Siguiente →</button>
+            </div>
+        </div>
+
+        <!-- Simulator Screen -->
+        <div class="screen" id="simulatorScreen">
+            <button class="btn btn-back" onclick="goHome()">← Volver al inicio</button>
+            <div class="quiz-header">
+                <h2>Simulador Profesional de Grabación de Macros</h2>
+                <p>Aprende paso a paso cómo grabar una macro completa para automatizar el formato de informes</p>
+            </div>
+            
+            <div class="simulator-container">
+                <div class="step-indicator" id="stepIndicator">Paso 1 de 10: Preparación - Haz clic en "Grabar Macro"</div>
+                <div class="step-description" id="stepDescription">
+                    Antes de comenzar, asegúrate de tener claro qué acciones quieres automatizar. En este ejercicio, crearemos una macro que formateará automáticamente un informe de ventas.
+                </div>
+                
+                <div class="simulator-layout">
+                    <div class="excel-workspace">
+                        <div class="excel-interface">
+                            <div class="excel-toolbar">
+                                <div class="toolbar-section">
+                                    <button class="toolbar-btn" id="recordBtn" onclick="startRecording()">🔴 Grabar Macro</button>
+                                    <button class="toolbar-btn" id="stopBtn" onclick="stopRecording()" style="display: none;">⏹️ Detener</button>
+                                </div>
+                                <div class="toolbar-section">
+                                    <button class="toolbar-btn" id="boldBtn" onclick="applyBold()" disabled>B</button>
+                                    <button class="toolbar-btn" id="italicBtn" onclick="applyItalic()" disabled>I</button>
+                                    <button class="toolbar-btn" id="underlineBtn" onclick="applyUnderline()" disabled>U</button>
+                                </div>
+                                <div class="toolbar-section">
+                                    <button class="toolbar-btn" id="colorBtn" onclick="applyColor()" disabled>🎨 Color</button>
+                                    <button class="toolbar-btn" id="borderBtn" onclick="applyBorders()" disabled>▦ Bordes</button>
+                                </div>
+                                <div class="toolbar-section">
+                                    <button class="toolbar-btn" id="alignBtn" onclick="alignCenter()" disabled>⬛ Centrar</button>
+                                    <button class="toolbar-btn" id="columnBtn" onclick="adjustColumns()" disabled>↔️ Ajustar</button>
+                                </div>
+                            </div>
+                            
+                            <div class="excel-grid" id="excelGrid">
+                                <div class="cell" data-cell="A1">Producto</div>
+                                <div class="cell" data-cell="B1">Precio</div>
+                                <div class="cell" data-cell="C1">Stock</div>
+                                <div class="cell" data-cell="D1">Total</div>
+                                <div class="cell" data-cell="A2">Laptop HP</div>
+                                <div class="cell" data-cell="B2">$1,200</div>
+                                <div class="cell" data-cell="C2">15</div>
+                                <div class="cell" data-cell="D2">$18,000</div>
+                                <div class="cell" data-cell="A3">Mouse Logitech</div>
+                                <div class="cell" data-cell="B3">$25</div>
+                                <div class="cell" data-cell="C3">50</div>
+                                <div class="cell" data-cell="D3">$1,250</div>
+                                <div class="cell" data-cell="A4">Teclado Mecánico</div>
+                                <div class="cell" data-cell="B4">$85</div>
+                                <div class="cell" data-cell="C4">30</div>
+                                <div class="cell" data-cell="D4">$2,550</div>
+                            </div>
+                        </div>
+                        
+                        <div id="macroDialog" class="dialog-box" style="display: none;">
+                            <h4>Configurar Macro</h4>
+                            <label>Nombre de la macro:</label>
+                            <input type="text" id="macroNameInput" placeholder="FormatearInformeVentas" value="FormatearInformeVentas">
+                            
+                            <label>Tecla de acceso directo:</label>
+                            <select id="shortcutSelect">
+                                <option value="Ctrl+Shift+F">Ctrl+Shift+F</option>
+                                <option value="Ctrl+Shift+R">Ctrl+Shift+R</option>
+                                <option value="Ctrl+Shift+M">Ctrl+Shift+M</option>
+                            </select>
+                            
+                            <label>Descripción:</label>
+                            <input type="text" id="macroDescInput" placeholder="Formatea automáticamente informes de ventas" value="Formatea automáticamente informes de ventas">
+                            
+                            <button class="btn btn-secondary" onclick="confirmMacroSettings()">Aceptar</button>
+                        </div>
+                        
+                        <div id="codeDisplay" class="code-display" style="display: none;">
+                            <pre id="vbaCode"></pre>
+                        </div>
+                        
+                        <div id="successMessage" class="success-message" style="display: none;">
+                            ¡Excelente trabajo! Has completado exitosamente la grabación de una macro profesional. 🎉
+                            <br><br>
+                            Esta macro ahora puede ser ejecutada con <span id="shortcutKey">Ctrl+Shift+F</span> para formatear automáticamente cualquier informe similar.
+                            <br><br>
+                            <button class="btn btn-secondary" onclick="resetSimulator()">Practicar otra vez</button>
+                        </div>
+                    </div>
+                    
+                    <div class="simulator-info">
+                        <div class="info-section">
+                            <h4>📋 Objetivo del ejercicio</h4>
+                            <p>Crear una macro que automatice el formato de un informe de ventas, incluyendo formato de texto, colores, bordes y ajuste de columnas.</p>
+                        </div>
+                        
+                        <div class="info-section">
+                            <h4>✅ Acciones a realizar</h4>
+                            <ul class="action-list" id="actionList">
+                                <li id="action1">▢ Iniciar grabación de macro</li>
+                                <li id="action2">▢ Configurar nombre y acceso directo</li>
+                                <li id="action3">▢ Seleccionar encabezados (A1:D1)</li>
+                                <li id="action4">▢ Aplicar formato negrita</li>
+                                <li id="action5">▢ Aplicar color de fondo</li>
+                                <li id="action6">▢ Centrar texto</li>
+                                <li id="action7">▢ Seleccionar toda la tabla</li>
+                                <li id="action8">▢ Aplicar bordes</li>
+                                <li id="action9">▢ Ajustar ancho de columnas</li>
+                                <li id="action10">▢ Detener grabación</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="info-section">
+                            <h4>💡 Tip profesional</h4>
+                            <p id="proTip">Las macros bien diseñadas deben ser genéricas y reutilizables. Evita referencias absolutas cuando sea posible.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div class="screen" id="resultsScreen">
+            <button class="btn btn-back" onclick="goHome()">← Volver al inicio</button>
+            <div class="results-container">
+                <h2>¡Quiz Completado!</h2>
+                <div class="score-circle">
+                    <span id="finalScore">0%</span>
+                </div>
+                <div class="results-details" id="resultsDetails"></div>
+                <button class="btn btn-secondary" onclick="restartQuiz()">Intentar de nuevo</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Quiz Data - Reorganizado por tipos
+        const quizQuestions = [
+            // SECCIÓN 1: PREGUNTAS DE OPCIÓN MÚLTIPLE
+            {
+                type: 'transition',
+                title: '📝 Sección 1: Preguntas de Opción Múltiple',
+                description: 'A continuación encontrarás preguntas con 4 opciones. Selecciona la respuesta correcta haciendo clic en ella.',
+                icon: '🎯'
+            },
+            {
+                type: 'multiple',
+                question: '¿Qué es una macro en Excel?',
+                options: [
+                    'Una fórmula compleja',
+                    'Una secuencia de comandos automatizada',
+                    'Un tipo de gráfico',
+                    'Una función matemática'
+                ],
+                correct: 1,
+                feedback: 'Una macro es una secuencia de comandos que automatiza tareas repetitivas en Excel.'
+            },
+            {
+                type: 'multiple',
+                question: '¿Cuál es el principal beneficio de usar macros?',
+                options: [
+                    'Hacer el archivo más pequeño',
+                    'Automatizar tareas repetitivas y ahorrar tiempo',
+                    'Mejorar la apariencia de las hojas',
+                    'Aumentar la velocidad de cálculo'
+                ],
+                correct: 1,
+                feedback: 'Las macros permiten automatizar tareas repetitivas, ahorrando tiempo y reduciendo errores.'
+            },
+            {
+                type: 'multiple',
+                question: '¿Qué extensión de archivo permite guardar macros en Excel?',
+                options: [
+                    '.xlsx',
+                    '.xlsm',
+                    '.xls',
+                    '.xlmacro'
+                ],
+                correct: 1,
+                feedback: 'Los archivos con extensión .xlsm son libros de Excel habilitados para macros.'
+            },
+            {
+                type: 'multiple',
+                question: '¿Qué es el Editor de Visual Basic?',
+                options: [
+                    'Un programa externo a Excel',
+                    'El entorno donde se escribe y edita el código VBA',
+                    'Una herramienta para crear gráficos',
+                    'Un complemento de pago'
+                ],
+                correct: 1,
+                feedback: 'El Editor de Visual Basic es el entorno integrado en Excel para escribir y editar código VBA.'
+            },
+            {
+                type: 'multiple',
+                question: '¿Cuál de estas NO es una buena práctica al crear macros?',
+                options: [
+                    'Usar nombres descriptivos',
+                    'Agregar comentarios al código',
+                    'Usar referencias absolutas siempre',
+                    'Probar la macro antes de distribuirla'
+                ],
+                correct: 2,
+                feedback: 'Usar siempre referencias absolutas limita la flexibilidad de la macro. Es mejor usar referencias relativas cuando sea apropiado.'
+            },
+            {
+                type: 'multiple',
+                question: '¿Qué nivel de seguridad de macros es más recomendable?',
+                options: [
+                    'Deshabilitar todas las macros sin notificación',
+                    'Habilitar todas las macros',
+                    'Deshabilitar todas las macros con notificación',
+                    'Confiar solo en macros firmadas digitalmente'
+                ],
+                correct: 2,
+                feedback: 'Deshabilitar macros con notificación permite decidir caso por caso si ejecutarlas.'
+            },
+            {
+                type: 'multiple',
+                question: '¿Qué palabra clave se usa para declarar una variable en VBA?',
+                options: [
+                    'var',
+                    'let',
+                    'Dim',
+                    'declare'
+                ],
+                correct: 2,
+                feedback: 'Dim (abreviatura de Dimension) se usa para declarar variables en VBA.'
+            },
+            // SECCIÓN 2: VERDADERO O FALSO
+            {
+                type: 'transition',
+                title: '✅ Sección 2: Verdadero o Falso',
+                description: 'Lee cada afirmación cuidadosamente y decide si es verdadera o falsa.',
+                icon: '🤔'
+            },
+            {
+                type: 'boolean',
+                question: 'Las macros en Excel se programan exclusivamente en lenguaje VBA (Visual Basic for Applications).',
+                correct: true,
+                feedback: 'Correcto. VBA es el lenguaje de programación utilizado para crear macros en Excel.'
+            },
+            {
+                type: 'boolean',
+                question: 'Es seguro habilitar todas las macros de cualquier archivo Excel sin revisión previa.',
+                correct: false,
+                feedback: 'Falso. Las macros pueden contener código malicioso, por lo que siempre debes verificar su origen.'
+            },
+            {
+                type: 'boolean',
+                question: 'Las macros pueden ejecutarse automáticamente al abrir un libro de Excel.',
+                correct: true,
+                feedback: 'Verdadero. Se pueden crear macros que se ejecuten automáticamente con eventos como Workbook_Open().'
+            },
+            // SECCIÓN 3: ORDENAR ELEMENTOS
+            {
+                type: 'transition',
+                title: '🔄 Sección 3: Ordenar Elementos',
+                description: 'Arrastra y suelta los elementos para colocarlos en el orden correcto. Cuando termines, haz clic en "Verificar orden".',
+                icon: '📋'
+            },
+            {
+                type: 'drag',
+                question: 'Ordena los pasos para grabar una macro:',
+                items: [
+                    'Ir a la pestaña Desarrollador',
+                    'Hacer clic en "Grabar macro"',
+                    'Asignar nombre y descripción',
+                    'Realizar las acciones a grabar',
+                    'Detener la grabación'
+                ],
+                correct: [0, 1, 2, 3, 4],
+                feedback: 'Este es el orden correcto para grabar una macro en Excel.'
+            },
+            {
+                type: 'drag',
+                question: 'Ordena estos elementos VBA del más general al más específico:',
+                items: [
+                    'Aplicación (Excel)',
+                    'Libro (Workbook)',
+                    'Hoja (Worksheet)',
+                    'Rango (Range)',
+                    'Celda (Cell)'
+                ],
+                correct: [0, 1, 2, 3, 4],
+                feedback: 'Esta es la jerarquía de objetos en VBA, desde la aplicación hasta la celda individual.'
+            }
+        ];
+
+        // Global Variables
+        let currentQuestion = 0;
+        let score = 0;
+        let answers = [];
+        let simulatorStep = 0;
+        let selectedCells = [];
+        let macroActions = [];
+
+        // Navigation Functions
+        function showQuiz() {
+            hideAllScreens();
+            document.getElementById('quizScreen').classList.add('active');
+            currentQuestion = 0;
+            score = 0;
+            answers = [];
+            displayQuestion();
+            updateProgress();
+        }
+
+        function showSimulator() {
+            hideAllScreens();
+            document.getElementById('simulatorScreen').classList.add('active');
+            resetSimulator();
+        }
+
+        function goHome() {
+            hideAllScreens();
+            document.getElementById('homeScreen').classList.add('active');
+        }
+
+        function hideAllScreens() {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+        }
+
+        // Quiz Functions
+        function displayQuestion() {
+            const container = document.getElementById('questionContainer');
+            const question = quizQuestions[currentQuestion];
+            
+            // Manejar pantallas de transición
+            if (question.type === 'transition') {
+                let html = `<div class="transition-screen">
+                    <div class="icon">${question.icon}</div>
+                    <h2>${question.title}</h2>
+                    <p>${question.description}</p>
+                    <button class="btn-continue" onclick="nextQuestion()">Continuar →</button>
+                </div>`;
+                
+                container.innerHTML = html;
+                document.getElementById('nextBtn').style.display = 'none';
+                updateNavigationButtons();
+                return;
+            }
+            
+            let html = `<div class="question-card">
+                <h3>Pregunta ${getCurrentQuestionNumber()} de ${getTotalQuestions()}</h3>
+                <p>${question.question}</p>`;
+            
+            if (question.type === 'multiple') {
+                html += '<div class="options">';
+                question.options.forEach((option, index) => {
+                    html += `<div class="option" onclick="selectOption(${index})" data-index="${index}">${option}</div>`;
+                });
+                html += '</div>';
+            } else if (question.type === 'boolean') {
+                html += '<div class="options">';
+                html += '<div class="option" onclick="selectOption(true)" data-bool="true" style="color: #27ae60;">✓ Verdadero</div>';
+                html += '<div class="option" onclick="selectOption(false)" data-bool="false" style="color: #e74c3c;">✗ Falso</div>';
+                html += '</div>';
+            } else if (question.type === 'drag') {
+                html += '<div class="drag-container" id="dragContainer">';
+                html += '<p style="margin-bottom: 10px; color: #666; font-size: 0.9em;">Arrastra y suelta para ordenar correctamente:</p>';
+                // Mezclar los items
+                const shuffled = [...question.items].sort(() => Math.random() - 0.5);
+                shuffled.forEach((item, index) => {
+                    html += `<div class="draggable" draggable="true" data-index="${question.items.indexOf(item)}" data-item="${index}">${item}</div>`;
+                });
+                html += '</div>';
+                html += '<button class="btn btn-secondary" onclick="checkDragOrder()" style="margin-top: 15px;">Verificar orden</button>';
+            }
+            
+            html += '<div class="feedback" id="feedback"></div>';
+            html += '</div>';
+            
+            container.innerHTML = html;
+            
+            if (question.type === 'drag') {
+                initializeDragAndDrop();
+            }
+            
+            updateNavigationButtons();
+            updateScoreDisplay();
+        }
+
+        // Funciones auxiliares para contar preguntas reales
+        function getCurrentQuestionNumber() {
+            let count = 0;
+            for (let i = 0; i <= currentQuestion; i++) {
+                if (quizQuestions[i].type !== 'transition') {
+                    count++;
+                }
+            }
+            return count;
+        }
+
+        function getTotalQuestions() {
+            return quizQuestions.filter(q => q.type !== 'transition').length;
+        }
+
+        function selectOption(value) {
+            const question = quizQuestions[currentQuestion];
+            const options = document.querySelectorAll('.option');
+            
+            options.forEach(opt => opt.classList.remove('selected'));
+            
+            if (question.type === 'boolean') {
+                const selected = document.querySelector(`[data-bool="${value}"]`);
+                selected.classList.add('selected');
+                checkAnswer(value);
+            } else {
+                const selected = document.querySelector(`[data-index="${value}"]`);
+                selected.classList.add('selected');
+                checkAnswer(value);
+            }
+        }
+
+        function checkAnswer(answer) {
+            const question = quizQuestions[currentQuestion];
+            let isCorrect = false;
+            
+            if (question.type === 'multiple') {
+                isCorrect = answer === question.correct;
+            } else if (question.type === 'boolean') {
+                isCorrect = answer === question.correct;
+            }
+            
+            if (isCorrect) {
+                score++;
+                showFeedback(true, question.feedback);
+            } else {
+                showFeedback(false, question.feedback);
+            }
+            
+            answers[currentQuestion] = { answer, isCorrect };
+            disableOptions();
+        }
+
+        function showFeedback(isCorrect, message) {
+            const feedback = document.getElementById('feedback');
+            feedback.className = `feedback ${isCorrect ? 'correct' : 'incorrect'} show`;
+            feedback.innerHTML = `${isCorrect ? '✓ ¡Correcto!' : '✗ Incorrecto'} ${message}`;
+        }
+
+        function disableOptions() {
+            document.querySelectorAll('.option').forEach(opt => {
+                opt.style.pointerEvents = 'none';
+            });
+            document.querySelectorAll('.draggable').forEach(drag => {
+                drag.draggable = false;
+                drag.style.cursor = 'default';
+                drag.style.opacity = '0.7';
+            });
+            // Deshabilitar botón de verificar si existe
+            const verifyBtn = document.querySelector('.btn-secondary[onclick="checkDragOrder()"]');
+            if (verifyBtn) {
+                verifyBtn.disabled = true;
+                verifyBtn.style.opacity = '0.5';
+                verifyBtn.style.cursor = 'not-allowed';
+            }
+        }
+
+        function nextQuestion() {
+            const question = quizQuestions[currentQuestion];
+            
+            // Si es una transición, simplemente avanzar
+            if (question.type === 'transition') {
+                currentQuestion++;
+                displayQuestion();
+                updateProgress();
+                return;
+            }
+            
+            // Verificar si la pregunta actual fue respondida
+            if (!answers[currentQuestion] && question.type !== 'transition') {
+                alert('Por favor responde la pregunta antes de continuar.');
+                return;
+            }
+            
+            if (currentQuestion < quizQuestions.length - 1) {
+                currentQuestion++;
+                displayQuestion();
+                updateProgress();
+            } else {
+                showResults();
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                displayQuestion();
+                updateProgress();
+                
+                // Si volvemos a una transición, asegurarnos de que se muestre correctamente
+                const question = quizQuestions[currentQuestion];
+                if (question.type === 'transition') {
+                    document.getElementById('nextBtn').style.display = 'none';
+                }
+            }
+        }
+
+        function updateNavigationButtons() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const question = quizQuestions[currentQuestion];
+            
+            prevBtn.style.display = currentQuestion > 0 ? 'block' : 'none';
+            
+            // Ocultar el botón siguiente si es una transición (tiene su propio botón)
+            if (question.type === 'transition') {
+                nextBtn.style.display = 'none';
+            } else {
+                nextBtn.style.display = 'block';
+                nextBtn.textContent = currentQuestion === quizQuestions.length - 1 ? 'Finalizar' : 'Siguiente';
+            }
+        }
+
+        function updateProgress() {
+            const totalQuestions = getTotalQuestions();
+            const currentQuestionNum = getCurrentQuestionNumber();
+            const progress = (currentQuestionNum / totalQuestions) * 100;
+            document.getElementById('progressBar').style.width = `${progress}%`;
+        }
+
+        function updateScoreDisplay() {
+            const answeredQuestions = answers.filter(a => a !== undefined).length;
+            document.getElementById('scoreDisplay').textContent = `Puntuación: ${score}/${answeredQuestions}`;
+        }
+
+        function showResults() {
+            hideAllScreens();
+            document.getElementById('resultsScreen').classList.add('active');
+            
+            const totalQuestions = getTotalQuestions();
+            const percentage = Math.round((score / totalQuestions) * 100);
+            document.getElementById('finalScore').textContent = `${percentage}%`;
+            
+            let detailsHTML = '<h3>Resumen de respuestas:</h3>';
+            let questionNum = 0;
+            
+            quizQuestions.forEach((question, index) => {
+                if (question.type !== 'transition') {
+                    questionNum++;
+                    const answer = answers[index];
+                    const icon = answer?.isCorrect ? '✓' : '✗';
+                    const iconClass = answer?.isCorrect ? 'correct' : 'incorrect';
+                    detailsHTML += `
+                        <div class="result-item">
+                            <span>Pregunta ${questionNum}: ${question.question.substring(0, 50)}...</span>
+                            <span class="result-icon ${iconClass}">${icon}</span>
+                        </div>
+                    `;
+                }
+            });
+            
+            document.getElementById('resultsDetails').innerHTML = detailsHTML;
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            answers = [];
+            showQuiz();
+        }
+
+        // Drag and Drop Functions
+        function initializeDragAndDrop() {
+            const draggables = document.querySelectorAll('.draggable');
+            const container = document.getElementById('dragContainer');
+            
+            draggables.forEach(draggable => {
+                draggable.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/html', e.target.innerHTML);
+                    e.target.classList.add('dragging');
+                });
+                
+                draggable.addEventListener('dragend', (e) => {
+                    e.target.classList.remove('dragging');
+                });
+            });
+            
+            container.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                const dragging = document.querySelector('.dragging');
+                const afterElement = getDragAfterElement(container, e.clientY);
+                if (afterElement == null) {
+                    container.appendChild(dragging);
+                } else {
+                    container.insertBefore(dragging, afterElement);
+                }
+            });
+            
+            container.addEventListener('drop', (e) => {
+                e.preventDefault();
+            });
+        }
+
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.draggable:not(.dragging)')];
+            
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+
+        function checkDragOrder() {
+            const question = quizQuestions[currentQuestion];
+            if (question.type !== 'drag') return;
+            
+            const draggables = document.querySelectorAll('.draggable');
+            const currentOrder = Array.from(draggables).map(d => parseInt(d.dataset.index));
+            
+            const isCorrect = JSON.stringify(currentOrder) === JSON.stringify(question.correct);
+            
+            if (isCorrect) {
+                score++;
+                showFeedback(true, question.feedback);
+            } else {
+                showFeedback(false, question.feedback);
+            }
+            
+            answers[currentQuestion] = { answer: currentOrder, isCorrect };
+            disableOptions();
+        }
+
+        // Simulator Functions
+        function resetSimulator() {
+            simulatorStep = 0;
+            selectedCells = [];
+            macroActions = [];
+            
+            updateStepIndicator(1, 'Preparación - Haz clic en "Grabar Macro"');
+            updateStepDescription('Antes de comenzar, asegúrate de tener claro qué acciones quieres automatizar. En este ejercicio, crearemos una macro que formateará automáticamente un informe de ventas.');
+            
+            document.getElementById('recordBtn').disabled = false;
+            document.getElementById('recordBtn').classList.remove('active');
+            document.getElementById('stopBtn').style.display = 'none';
+            document.getElementById('boldBtn').disabled = true;
+            document.getElementById('italicBtn').disabled = true;
+            document.getElementById('underlineBtn').disabled = true;
+            document.getElementById('colorBtn').disabled = true;
+            document.getElementById('borderBtn').disabled = true;
+            document.getElementById('alignBtn').disabled = true;
+            document.getElementById('columnBtn').disabled = true;
+            document.getElementById('macroDialog').style.display = 'none';
+            document.getElementById('codeDisplay').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
+            
+            document.querySelectorAll('.cell').forEach(cell => {
+                cell.classList.remove('selected', 'formatted', 'colored');
+                cell.style.fontWeight = 'normal';
+                cell.style.fontStyle = 'normal';
+                cell.style.textDecoration = 'none';
+                cell.style.textAlign = 'left';
+                cell.style.backgroundColor = 'white';
+            });
+            
+            document.querySelectorAll('.toolbar-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Reset action list
+            document.querySelectorAll('.action-list li').forEach(li => {
+                li.classList.remove('completed');
+                li.innerHTML = li.innerHTML.replace('✓', '▢');
+            });
+            
+            updateProTip('Las macros bien diseñadas deben ser genéricas y reutilizables. Evita referencias absolutas cuando sea posible.');
+        }
+
+        function updateStepIndicator(step, text) {
+            document.getElementById('stepIndicator').textContent = `Paso ${step} de 10: ${text}`;
+        }
+
+        function updateStepDescription(text) {
+            document.getElementById('stepDescription').textContent = text;
+        }
+
+        function updateProTip(text) {
+            document.getElementById('proTip').textContent = text;
+        }
+
+        function completeAction(actionNumber) {
+            const action = document.getElementById(`action${actionNumber}`);
+            if (action) {
+                action.classList.add('completed');
+                action.innerHTML = action.innerHTML.replace('▢', '✓');
+            }
+        }
+
+        function startRecording() {
+            if (simulatorStep === 0) {
+                document.getElementById('recordBtn').classList.add('active');
+                document.getElementById('macroDialog').style.display = 'block';
+                updateStepIndicator(2, 'Configuración de la macro');
+                updateStepDescription('Define un nombre descriptivo para tu macro y asigna una tecla de acceso directo. Un buen nombre describe claramente lo que hace la macro.');
+                updateProTip('Usa nombres descriptivos como "FormatearInformeVentas" en lugar de "Macro1". Esto facilita la identificación posterior.');
+                simulatorStep = 1;
+                completeAction(1);
+            }
+        }
+
+        function confirmMacroSettings() {
+            const macroName = document.getElementById('macroNameInput').value || 'FormatearInformeVentas';
+            const shortcut = document.getElementById('shortcutSelect').value;
+            const description = document.getElementById('macroDescInput').value;
+            
+            if (macroName.trim()) {
+                document.getElementById('macroDialog').style.display = 'none';
+                document.getElementById('stopBtn').style.display = 'inline-block';
+                document.getElementById('shortcutKey').textContent = shortcut;
+                
+                updateStepIndicator(3, 'Seleccionar encabezados');
+                updateStepDescription('Haz clic en la celda A1 y arrastra hasta D1 para seleccionar todos los encabezados. Esta será nuestra primera acción grabada.');
+                updateProTip('Al seleccionar rangos, piensa si tu macro funcionará con tablas de diferentes tamaños. Considera usar métodos dinámicos.');
+                
+                macroActions.push(`Sub ${macroName}()`);
+                macroActions.push(`' ${description}`);
+                macroActions.push(`' Acceso directo: ${shortcut}`);
+                macroActions.push(`'`);
+                macroActions.push(`' Creado el: ${new Date().toLocaleDateString()}`);
+                macroActions.push('');
+                
+                simulatorStep = 2;
+                completeAction(2);
+                enableCellSelection();
+            }
+        }
+
+        function enableCellSelection() {
+            document.querySelectorAll('.cell').forEach(cell => {
+                cell.addEventListener('click', handleCellClick);
+                cell.addEventListener('mouseenter', handleCellHover);
+            });
+        }
+
+        let isSelecting = false;
+        let selectionStart = null;
+
+        function handleCellClick(e) {
+            if (simulatorStep === 2) {
+                // Primera selección: encabezados
+                isSelecting = true;
+                selectionStart = e.target.dataset.cell;
+                
+                if (selectionStart === 'A1') {
+                    // Seleccionar encabezados A1:D1
+                    document.querySelectorAll('.cell').forEach(cell => {
+                        const cellRef = cell.dataset.cell;
+                        if (cellRef.endsWith('1')) {
+                            cell.classList.add('selected');
+                        }
+                    });
+                    
+                    macroActions.push('    \' Seleccionar encabezados');
+                    macroActions.push('    Range("A1:D1").Select');
+                    
+                    updateStepIndicator(4, 'Aplicar formato negrita');
+                    updateStepDescription('Aplica formato negrita a los encabezados seleccionados presionando el botón B en la barra de herramientas.');
+                    updateProTip('El formato negrita ayuda a distinguir visualmente los encabezados del contenido de la tabla.');
+                    
+                    document.getElementById('boldBtn').disabled = false;
+                    simulatorStep = 3;
+                    completeAction(3);
+                }
+            } else if (simulatorStep === 6) {
+                // Segunda selección: toda la tabla
+                if (selectionStart === 'A1') {
+                    document.querySelectorAll('.cell').forEach(cell => {
+                        cell.classList.add('selected');
+                    });
+                    
+                    macroActions.push('    ');
+                    macroActions.push('    \' Seleccionar toda la tabla');
+                    macroActions.push('    Range("A1:D4").Select');
+                    
+                    updateStepIndicator(8, 'Aplicar bordes');
+                    updateStepDescription('Aplica bordes a toda la tabla para mejorar su presentación visual.');
+                    updateProTip('Los bordes ayudan a delimitar claramente los datos y mejoran la legibilidad del informe.');
+                    
+                    document.getElementById('borderBtn').disabled = false;
+                    simulatorStep = 7;
+                    completeAction(7);
+                }
+            }
+        }
+
+        function handleCellHover(e) {
+            // Opcional: efecto visual al pasar el mouse
+        }
+
+        function applyBold() {
+            if (simulatorStep === 3) {
+                document.getElementById('boldBtn').classList.add('active');
+                document.querySelectorAll('.cell').forEach(cell => {
+                    if (cell.classList.contains('selected') && cell.dataset.cell.endsWith('1')) {
+                        cell.style.fontWeight = 'bold';
+                    }
+                });
+                
+                macroActions.push('    Selection.Font.Bold = True');
+                
+                updateStepIndicator(5, 'Aplicar color de fondo');
+                updateStepDescription('Dale un color de fondo a los encabezados para destacarlos aún más. Esto es una práctica común en informes profesionales.');
+                updateProTip('Usa colores sutiles que no dificulten la lectura. Los tonos pastel son ideales para encabezados.');
+                
+                document.getElementById('colorBtn').disabled = false;
+                simulatorStep = 4;
+                completeAction(4);
+            }
+        }
+
+        function applyItalic() {
+            // Función adicional si se necesita
+        }
+
+        function applyUnderline() {
+            // Función adicional si se necesita
+        }
+
+        function applyColor() {
+            if (simulatorStep === 4) {
+                document.getElementById('colorBtn').classList.add('active');
+                document.querySelectorAll('.cell').forEach(cell => {
+                    if (cell.classList.contains('selected') && cell.dataset.cell.endsWith('1')) {
+                        cell.style.backgroundColor = '#fff3cd';
+                        cell.classList.add('colored');
+                    }
+                });
+                
+                macroActions.push('    ');
+                macroActions.push('    \' Aplicar color de fondo amarillo claro');
+                macroActions.push('    With Selection.Interior');
+                macroActions.push('        .Pattern = xlSolid');
+                macroActions.push('        .Color = RGB(255, 243, 205)');
+                macroActions.push('    End With');
+                
+                updateStepIndicator(6, 'Centrar texto');
+                updateStepDescription('Centra el texto de los encabezados para mejorar la presentación.');
+                updateProTip('El alineamiento centrado es ideal para encabezados, mientras que los datos numéricos suelen alinearse a la derecha.');
+                
+                document.getElementById('alignBtn').disabled = false;
+                simulatorStep = 5;
+                completeAction(5);
+            }
+        }
+
+        function alignCenter() {
+            if (simulatorStep === 5) {
+                document.getElementById('alignBtn').classList.add('active');
+                document.querySelectorAll('.cell').forEach(cell => {
+                    if (cell.classList.contains('selected') && cell.dataset.cell.endsWith('1')) {
+                        cell.style.textAlign = 'center';
+                    }
+                });
+                
+                macroActions.push('    ');
+                macroActions.push('    \' Centrar texto horizontalmente');
+                macroActions.push('    Selection.HorizontalAlignment = xlCenter');
+                
+                // Deseleccionar encabezados
+                document.querySelectorAll('.cell').forEach(cell => {
+                    cell.classList.remove('selected');
+                });
+                
+                updateStepIndicator(7, 'Seleccionar toda la tabla');
+                updateStepDescription('Ahora selecciona toda la tabla (A1:D4) para aplicar bordes. Haz clic en A1 y arrastra hasta D4.');
+                updateProTip('Seleccionar rangos completos permite aplicar formato uniforme a toda la información.');
+                
+                simulatorStep = 6;
+                completeAction(6);
+            }
+        }
+
+        function applyBorders() {
+            if (simulatorStep === 7) {
+                document.getElementById('borderBtn').classList.add('active');
+                document.querySelectorAll('.cell').forEach(cell => {
+                    if (cell.classList.contains('selected')) {
+                        cell.classList.add('formatted');
+                    }
+                });
+                
+                macroActions.push('    ');
+                macroActions.push('    \' Aplicar bordes a toda la tabla');
+                macroActions.push('    Selection.Borders(xlDiagonalDown).LineStyle = xlNone');
+                macroActions.push('    Selection.Borders(xlDiagonalUp).LineStyle = xlNone');
+                macroActions.push('    With Selection.Borders(xlEdgeLeft)');
+                macroActions.push('        .LineStyle = xlContinuous');
+                macroActions.push('        .Weight = xlThin');
+                macroActions.push('    End With');
+                macroActions.push('    With Selection.Borders(xlEdgeTop)');
+                macroActions.push('        .LineStyle = xlContinuous');
+                macroActions.push('        .Weight = xlThin');
+                macroActions.push('    End With');
+                macroActions.push('    With Selection.Borders(xlEdgeBottom)');
+                macroActions.push('        .LineStyle = xlContinuous');
+                macroActions.push('        .Weight = xlThin');
+                macroActions.push('    End With');
+                macroActions.push('    With Selection.Borders(xlEdgeRight)');
+                macroActions.push('        .LineStyle = xlContinuous');
+                macroActions.push('        .Weight = xlThin');
+                macroActions.push('    End With');
+                macroActions.push('    With Selection.Borders(xlInsideVertical)');
+                macroActions.push('        .LineStyle = xlContinuous');
+                macroActions.push('        .Weight = xlThin');
+                macroActions.push('    End With');
+                macroActions.push('    With Selection.Borders(xlInsideHorizontal)');
+                macroActions.push('        .LineStyle = xlContinuous');
+                macroActions.push('        .Weight = xlThin');
+                macroActions.push('    End With');
+                
+                updateStepIndicator(9, 'Ajustar ancho de columnas');
+                updateStepDescription('Ajusta automáticamente el ancho de las columnas para que todo el contenido sea visible.');
+                updateProTip('El ajuste automático de columnas asegura que toda la información sea legible sin necesidad de ajustes manuales.');
+                
+                document.getElementById('columnBtn').disabled = false;
+                simulatorStep = 8;
+                completeAction(8);
+            }
+        }
+
+        function adjustColumns() {
+            if (simulatorStep === 8) {
+                document.getElementById('columnBtn').classList.add('active');
+                
+                macroActions.push('    ');
+                macroActions.push('    \' Ajustar ancho de columnas automáticamente');
+                macroActions.push('    Columns("A:D").EntireColumn.AutoFit');
+                macroActions.push('    ');
+                macroActions.push('    \' Seleccionar celda A1 al finalizar');
+                macroActions.push('    Range("A1").Select');
+                
+                updateStepIndicator(10, 'Detener grabación');
+                updateStepDescription('¡Excelente! Has completado todas las acciones. Ahora detén la grabación para finalizar tu macro.');
+                updateProTip('Siempre prueba tu macro después de grabarla para asegurarte de que funciona correctamente.');
+                
+                simulatorStep = 9;
+                completeAction(9);
+            }
+        }
+
+        function stopRecording() {
+            if (simulatorStep >= 2) {
+                macroActions.push('    ');
+                macroActions.push('    \' Mensaje de finalización');
+                macroActions.push('    MsgBox "Formato aplicado exitosamente", vbInformation, "Macro Completada"');
+                macroActions.push('    ');
+                macroActions.push('End Sub');
+                
+                document.getElementById('stopBtn').style.display = 'none';
+                document.getElementById('recordBtn').classList.remove('active');
+                showGeneratedCode();
+                document.getElementById('successMessage').style.display = 'block';
+                updateStepIndicator(10, '¡Macro completada con éxito!');
+                updateStepDescription('Tu macro ha sido grabada exitosamente. Revisa el código VBA generado a continuación.');
+                updateProTip('Puedes editar el código VBA en el Editor de Visual Basic para añadir funcionalidades adicionales o mejorar la eficiencia.');
+                completeAction(10);
+            }
+        }
+
+        function showGeneratedCode() {
+            const code = macroActions.join('\n');
+            document.getElementById('vbaCode').textContent = code;
+            document.getElementById('codeDisplay').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
